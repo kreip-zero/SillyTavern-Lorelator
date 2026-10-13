@@ -1,0 +1,13 @@
+{
+  "name": "lorelator",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test \"tests/**/*.test.js\"",
+    "build:stemmers": "node scripts/build-stemmers.mjs"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2",
+    "snowball-stemmers": "^0.6.0"
+  }
+}

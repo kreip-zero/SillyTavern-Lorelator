@@ -1,0 +1,334 @@
+{
+  "entries": {
+    "0": {
+      "uid": 0,
+      "key": [
+        "dragon",
+        "dragons"
+      ],
+      "keysecondary": [],
+      "comment": "Dragon",
+      "content": "Huge winged reptiles that breathe fire and hoard gold in mountain lairs.",
+      "constant": false,
+      "selective": true,
+      "order": 100,
+      "position": 0,
+      "disable": false,
+      "probability": 100,
+      "useProbability": true
+    },
+    "1": {
+      "uid": 1,
+      "key": [
+        "Dark Brotherhood"
+      ],
+      "keysecondary": [],
+      "comment": "Dark Brotherhood",
+      "content": "A secret guild of assassins who worship the Night Mother and take contracts on lives.",
+      "constant": false,
+      "selective": true,
+      "order": 100,
+      "position": 0,
+      "disable": false,
+      "probability": 100,
+      "useProbability": true
+    },
+    "2": {
+      "uid": 2,
+      "key": [
+        "Whiterun"
+      ],
+      "keysecondary": [],
+      "comment": "Whiterun",
+      "content": "A trade city on the plains, ruled by a Jarl from the palace of Dragonsreach.",
+      "constant": false,
+      "selective": true,
+      "order": 100,
+      "position": 0,
+      "disable": false,
+      "probability": 100,
+      "useProbability": true
+    },
+    "3": {
+      "uid": 3,
+      "key": [
+        "mana"
+      ],
+      "keysecondary": [],
+      "comment": "Mana",
+      "content": "The magical energy mages draw on to cast spells; it regenerates slowly.",
+      "constant": false,
+      "selective": true,
+      "order": 100,
+      "position": 0,
+      "disable": false,
+      "probability": 100,
+      "useProbability": true
+    },
+    "4": {
+      "uid": 4,
+      "key": [
+        "curse",
+        "moon curse"
+      ],
+      "keysecondary": [],
+      "comment": "Curse of the Moon",
+      "content": "Those bitten under a full moon slowly turn into beasts.",
+      "constant": false,
+      "selective": true,
+      "order": 100,
+      "position": 0,
+      "disable": false,
+      "probability": 100,
+      "useProbability": true
+    },
+    "5": {
+      "uid": 5,
+      "key": [
+        "tavern",
+        "Drunken Pony"
+      ],
+      "keysecondary": [],
+      "comment": "The Drunken Pony",
+      "content": "The local tavern: cheap ale, loud bards, and rumours for a coin.",
+      "constant": false,
+      "selective": true,
+      "order": 100,
+      "position": 0,
+      "disable": false,
+      "probability": 100,
+      "useProbability": true
+    },
+    "6": {
+      "uid": 6,
+      "key": [
+        "Thieves Guild",
+        "thieves"
+      ],
+      "keysecondary": [],
+      "comment": "Thieves Guild",
+      "content": "An organisation of burglars and fences based in the city sewers.",
+      "constant": false,
+      "selective": true,
+      "order": 100,
+      "position": 0,
+      "disable": false,
+      "probability": 100,
+      "useProbability": true
+    },
+    "7": {
+      "uid": 7,
+      "key": [
+        "Elara"
+      ],
+      "keysecondary": [],
+      "comment": "Elara",
+      "content": "The innkeeper of the Drunken Pony, a retired adventurer with a scar over one eye.",
+      "constant": false,
+      "selective": true,
+      "order": 100,
+      "position": 0,
+      "disable": false,
+      "probability": 100,
+      "useProbability": true
+    },
+    "8": {
+      "uid": 8,
+      "key": [
+        "Iron Legion",
+        "legionnaire"
+      ],
+      "keysecondary": [],
+      "comment": "Iron Legion",
+      "content": "The imperial army; disciplined soldiers in steel plate.",
+      "constant": false,
+      "selective": true,
+      "order": 100,
+      "position": 0,
+      "disable": false,
+      "probability": 100,
+      "useProbability": true
+    },
+    "9": {
+      "uid": 9,
+      "key": [
+        "black market",
+        "smuggler"
+      ],
+      "keysecondary": [],
+      "comment": "Black Market",
+      "content": "Illegal goods traded at night by the docks.",
+      "constant": false,
+      "selective": true,
+      "order": 100,
+      "position": 0,
+      "disable": false,
+      "probability": 100,
+      "useProbability": true
+    },
+    "10": {
+      "uid": 10,
+      "key": [
+        "healing potion",
+        "potion"
+      ],
+      "keysecondary": [],
+      "comment": "Healing Potion",
+      "content": "A red tonic that closes wounds within minutes.",
+      "constant": false,
+      "selective": true,
+      "order": 100,
+      "position": 0,
+      "disable": false,
+      "probability": 100,
+      "useProbability": true
+    },
+    "11": {
+      "uid": 11,
+      "key": [
+        "necromancy",
+        "necromancer"
+      ],
+      "keysecondary": [],
+      "comment": "Necromancy",
+      "content": "Forbidden magic that raises the dead as servants.",
+      "constant": false,
+      "selective": true,
+      "order": 100,
+      "position": 0,
+      "disable": false,
+      "probability": 100,
+      "useProbability": true
+    },
+    "12": {
+      "uid": 12,
+      "key": [
+        "Old Gods"
+      ],
+      "keysecondary": [],
+      "comment": "The Old Gods",
+      "content": "Ancient deities worshipped before the Empire; their shrines lie in ruins.",
+      "constant": false,
+      "selective": true,
+      "order": 100,
+      "position": 0,
+      "disable": false,
+      "probability": 100,
+      "useProbability": true
+    },
+    "13": {
+      "uid": 13,
+      "key": [
+        "gold",
+        "coins",
+        "septim"
+      ],
+      "keysecondary": [],
+      "comment": "Gold Coins",
+      "content": "The common currency of the realm.",
+      "constant": false,
+      "selective": true,
+      "order": 100,
+      "position": 0,
+      "disable": false,
+      "probability": 100,
+      "useProbability": true
+    },
+    "14": {
+      "uid": 14,
+      "key": [
+        "wolves",
+        "wolf pack"
+      ],
+      "keysecondary": [],
+      "comment": "Wolf Pack",
+      "content": "Grey wolves roam the northern forests in packs of six or more.",
+      "constant": false,
+      "selective": true,
+      "order": 100,
+      "position": 0,
+      "disable": false,
+      "probability": 100,
+      "useProbability": true
+    },
+    "15": {
+      "uid": 15,
+      "key": [
+        "bounty",
+        "wanted"
+      ],
+      "keysecondary": [],
+      "comment": "Bounty",
+      "content": "Guards hunt anyone with a price on their head.",
+      "constant": false,
+      "selective": true,
+      "order": 100,
+      "position": 0,
+      "disable": false,
+      "probability": 100,
+      "useProbability": true
+    },
+    "16": {
+      "uid": 16,
+      "key": [
+        "hangover"
+      ],
+      "keysecondary": [],
+      "comment": "Hangover",
+      "content": "What adventurers wake up with after a night at the Drunken Pony.",
+      "constant": false,
+      "selective": true,
+      "order": 100,
+      "position": 0,
+      "disable": false,
+      "probability": 100,
+      "useProbability": true
+    },
+    "17": {
+      "uid": 17,
+      "key": [],
+      "keysecondary": [],
+      "comment": "World Rules",
+      "content": "Always-on rules of the setting.",
+      "constant": false,
+      "selective": true,
+      "order": 100,
+      "position": 0,
+      "disable": false,
+      "probability": 100,
+      "useProbability": true
+    },
+    "18": {
+      "uid": 18,
+      "key": [
+        "style"
+      ],
+      "keysecondary": [],
+      "comment": "Narrator Style",
+      "content": "Constant entry for the narrator.",
+      "constant": true,
+      "selective": true,
+      "order": 100,
+      "position": 0,
+      "disable": false,
+      "probability": 100,
+      "useProbability": true
+    },
+    "19": {
+      "uid": 19,
+      "key": [
+        "/\bsword(s)?\b/i"
+      ],
+      "keysecondary": [],
+      "comment": "Regex Author Key",
+      "content": "Swords are forged in the city smithy.",
+      "constant": false,
+      "selective": true,
+      "order": 100,
+      "position": 0,
+      "disable": false,
+      "probability": 100,
+      "useProbability": true
+    }
+  }
+}

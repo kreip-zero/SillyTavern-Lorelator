@@ -1,0 +1,248 @@
+.lbl-panel .lbl-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 8px;
+}
+
+.lbl-panel select,
+.lbl-panel input[type="number"] {
+    min-height: 44px;
+    width: 100%;
+}
+
+.lbl-panel .lbl-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.lbl-panel .lbl-small {
+    flex: 0 1 140px;
+}
+
+.lbl-panel .lbl-check {
+    flex: 1 1 220px;
+    min-height: 44px;
+    align-items: center;
+}
+
+.lbl-panel .lbl-conn {
+    border-left: 2px solid var(--SmartThemeBorderColor);
+    padding-left: 10px;
+    margin-bottom: 8px;
+}
+
+.lbl-panel .lbl-warning {
+    color: var(--warning, #e8a33d);
+}
+
+.lbl-panel .lbl-model {
+    flex-wrap: nowrap;
+    margin: 0;
+}
+
+.lbl-panel .lbl-model input {
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 44px;
+}
+
+.lbl-panel .lbl-model .menu_button {
+    flex: none;
+    min-height: 44px;
+    margin: 0;
+    white-space: nowrap;
+}
+
+.lbl-panel .lbl-buttons .menu_button {
+    flex: 1 1 160px;
+    min-height: 44px;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.lbl-panel .lbl-status progress {
+    width: 100%;
+    height: 12px;
+}
+
+.lbl-review {
+    max-height: 60vh;
+    overflow-y: auto;
+    text-align: left;
+}
+
+.lbl-review-entry {
+    border-bottom: 1px solid var(--SmartThemeBorderColor);
+    padding: 8px 0;
+}
+
+.lbl-review-entry h4 {
+    margin: 0 0 6px;
+}
+
+.lbl-review-phrase {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 44px;
+    cursor: pointer;
+}
+
+.lbl-review-phrase input {
+    width: 22px;
+    height: 22px;
+    flex: none;
+}
+
+/* Author display rules (flex on buttons) would otherwise override the hidden attribute. */
+.lbl-panel [hidden] {
+    display: none !important;
+}
+
+#lbl_status_text {
+    white-space: pre-line;
+}
+
+.lbl-panel .lbl-buttons .lbl-help {
+    flex: 0 0 44px;
+    font-weight: bold;
+}
+
+.lbl-panel .lbl-backups {
+    margin-top: 10px;
+}
+
+.lbl-panel .lbl-backups .inline-drawer-content > * {
+    margin-bottom: 8px;
+}
+
+.lbl-help-text {
+    text-align: left;
+}
+
+.lbl-help-text h4 {
+    margin: 12px 0 4px;
+}
+
+.lbl-panel .lbl-viewer {
+    margin-top: 10px;
+}
+
+.lbl-panel .lbl-viewer .inline-drawer-content > * {
+    margin-bottom: 8px;
+}
+
+/* Book icon in the input bar: same size as SillyTavern's own buttons there. */
+.lbl-wi-inbar {
+    position: relative;
+    cursor: pointer;
+    font-size: var(--bottomFormIconSize, 1.15em);
+    padding: 0 4px;
+    opacity: 0.7;
+}
+
+.lbl-wi-inbar:hover {
+    opacity: 1;
+}
+
+.lbl-wi-float {
+    position: fixed;
+    z-index: 3000;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    border-radius: 50%;
+    background: var(--SmartThemeBlurTintColor, rgba(0, 0, 0, 0.6));
+    border: 1px solid var(--SmartThemeBorderColor);
+    cursor: grab;
+    touch-action: none;
+    user-select: none;
+}
+
+.lbl-wi-inbar::after,
+.lbl-wi-float::after {
+    content: attr(data-count);
+    position: absolute;
+    right: -4px;
+    bottom: -4px;
+    min-width: 1.4em;
+    padding: 0 3px;
+    border-radius: 0.7em;
+    font: bold 11px/1.4em var(--mainFontFamily, sans-serif);
+    text-align: center;
+    color: white;
+    background: var(--SmartThemeQuoteColor, #c27c2c);
+    pointer-events: none;
+}
+
+.lbl-wi-inbar[data-count="0"]::after,
+.lbl-wi-float[data-count="0"]::after {
+    display: none;
+}
+
+.lbl-act-popup,
+.lbl-phrase {
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.lbl-act-world summary {
+    cursor: pointer;
+    font-weight: bold;
+    padding: 6px 0;
+}
+
+.lbl-act-item {
+    border-left: 2px solid var(--SmartThemeBorderColor);
+    padding: 4px 0 4px 10px;
+    margin: 4px 0 8px;
+}
+
+.lbl-act-title {
+    font-weight: bold;
+}
+
+.lbl-act-reason,
+.lbl-phrase-note,
+.lbl-act-empty {
+    opacity: 0.85;
+    font-size: 0.92em;
+    overflow-wrap: anywhere;
+}
+
+.lbl-phrase .menu_button {
+    min-height: 44px;
+    /* In a flex column SillyTavern's button would shrink to its narrowest word wrap. */
+    width: fit-content;
+    max-width: 100%;
+    padding-inline: 16px;
+    white-space: normal;
+}
+
+.lbl-mes-activations {
+    margin-top: 6px;
+    font-size: 0.9em;
+}
+
+.lbl-mes-toggle {
+    background: none;
+    border: 1px solid var(--SmartThemeBorderColor);
+    border-radius: 6px;
+    color: inherit;
+    padding: 4px 10px;
+    min-height: 32px;
+    cursor: pointer;
+    opacity: 0.8;
+}
