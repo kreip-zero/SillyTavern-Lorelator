@@ -153,3 +153,26 @@ test('Indonesian: the word itself is the stem, so endings and reduplication are 
     assert.equal(keys.length, 3);
     assert.ok(keys.some(k => toRegExp(k.key).test(' pengobatan ')));
 });
+
+test('a 4-letter stem left of a long word is lengthened, so it does not catch unrelated words', () => {
+    const milk = toRegExp(phraseToKey({ text: 'подоить' }, 'ru'));
+    assert.ok(milk.test(' подоила '));
+    assert.equal(milk.test(' подойти '), false);
+    const friction = toRegExp(phraseToKey({ text: 'трение' }, 'ru'));
+    for (const form of ['трение', 'трения', 'трением']) assert.ok(friction.test(` ${form} `), form);
+    assert.equal(friction.test(' тренировки '), false);
+    assert.ok(toRegExp(phraseToKey({ text: 'знание' }, 'ru')).test(' знаниями '));
+});
+
+test('a short Russian stem takes at most five more letters (член is not членораздельно)', () => {
+    const member = toRegExp(phraseToKey({ text: 'член' }, 'ru'));
+    for (const form of ['член', 'члена', 'членом', 'членами']) assert.ok(member.test(` ${form} `), form);
+    assert.equal(member.test(' членораздельно '), false);
+    const market = toRegExp(phraseToKey({ text: 'рынок' }, 'ru'));
+    for (const form of ['рынок', 'рынка', 'рынками']) assert.ok(market.test(` ${form} `), form);
+});
+
+test('Russian pronouns and adverbs never become keys', () => {
+    for (const word of ['мой', 'моё', 'внутри', 'сверху', 'вход']) assert.equal(phraseToKey({ text: word }, 'ru'), null, word);
+    assert.ok(phraseToKey({ text: 'ты моя' }, 'ru'), 'a phrase with a pronoun is still fine');
+});

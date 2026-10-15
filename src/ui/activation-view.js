@@ -55,7 +55,10 @@ function reasonLines(reason) {
             const lines = [];
             lines.push(reason.messageIndex >= 0 ? t`by “${reason.fragment}” in message #${reason.messageIndex}` : t`by “${reason.fragment}”`);
             lines.push(`${t`key:`} ${reason.readable} — ${reason.own ? t`added by the localizer (${reason.own})` : t`your key`}`);
-            if (reason.secondary) lines.push(`${t`and secondary key:`} ${reason.secondary.readable} (“${reason.secondary.fragment}”)`);
+            if (reason.secondary) {
+                const where = reason.secondary.fragment ? ` (“${reason.secondary.fragment}”)` : '';
+                lines.push(`${t`and secondary key:`} ${reason.secondary.readable}${where}`);
+            }
             return lines;
         }
         case 'constant': return [t`always on (constant entry)`];

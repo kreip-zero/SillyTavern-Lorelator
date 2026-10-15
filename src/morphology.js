@@ -9,7 +9,9 @@ const NOT_WORD_AFTER = '(?![\\p{L}\\p{N}])';
 
 /** Too-common words that would fire an entry on almost every message. */
 export const STOPWORDS = {
-    ru: ['я', 'ты', 'он', 'она', 'оно', 'мы', 'вы', 'они', 'это', 'тот', 'этот', 'дом', 'время', 'человек', 'люди', 'день', 'ночь', 'место', 'дело', 'жизнь', 'мир', 'рука', 'глаз', 'слово', 'раз', 'год', 'вещь', 'путь'],
+    ru: ['я', 'ты', 'он', 'она', 'оно', 'мы', 'вы', 'они', 'это', 'тот', 'этот', 'дом', 'время', 'человек', 'люди', 'день', 'ночь', 'место', 'дело', 'жизнь', 'мир', 'рука', 'глаз', 'слово', 'раз', 'год', 'вещь', 'путь',
+        // Pronouns and adverbs that are never the subject of an entry (models still offered «мой» for «you are mine»).
+        'мой', 'моя', 'моё', 'мои', 'твой', 'твоя', 'твоё', 'твои', 'свой', 'своя', 'своё', 'свои', 'его', 'её', 'их', 'внутри', 'внутрь', 'сверху', 'снизу', 'вход', 'войти', 'здесь', 'там', 'тут'],
     uk: ['я', 'ти', 'він', 'вона', 'воно', 'ми', 'ви', 'вони', 'це', 'той', 'цей', 'дім', 'час', 'людина', 'люди', 'день', 'ніч', 'місце', 'справа', 'життя', 'світ', 'рука', 'око', 'слово', 'раз', 'рік'],
     de: ['ich', 'du', 'er', 'sie', 'es', 'wir', 'ihr', 'das', 'der', 'die', 'haus', 'zeit', 'mensch', 'leute', 'tag', 'nacht', 'ort', 'sache', 'leben', 'welt', 'hand', 'auge', 'wort', 'mal', 'jahr', 'ding', 'weg'],
     fr: ['je', 'tu', 'il', 'elle', 'nous', 'vous', 'ils', 'elles', 'ce', 'cela', 'maison', 'temps', 'homme', 'gens', 'jour', 'nuit', 'lieu', 'chose', 'vie', 'monde', 'main', 'oeil', 'mot', 'fois', 'an', 'année', 'chemin'],
@@ -46,6 +48,8 @@ const UK_ENDINGS = '(?:а|я|у|ю|і|ї|е|є|о|и|ом|ем|єм|ою|ею|є
 // Ukrainian is measured better with the generic "up to 2 letters": a 3-letter AI stem usually ends before a
 // changed consonant (вовк → вов because of вовче), so a fixed ending list misses вовка, зірки.
 const SHORT_ENDINGS = { ru: RU_ENDINGS };
+// Languages whose 4-5 letter stems take at most 5 more letters (see wordPattern).
+const CAPPED_ENDINGS = new Set(['ru', 'uk', 'pl', 'cs', 'de']);
 
 // Fleeting vowel: рынок → рынка (only -ок), отец → отца, ветер → ветра, день → дня (е/ё + к ц н р л).
 const RU_FLEETING = /^(.+[^аеёиоуыэюяй])(?:(о)(к)|([её])([кцнрл]))$/;
@@ -83,11 +87,16 @@ function wordPattern(word, stem, lang) {
     // Only for local stemmers: a short AI stem is deliberate (kupiec → kup for kupca). 7+ letters get an open
     // prefix; 6-letter words a closed ending of 1–3 letters, so "parada" never turns into "para…".
     const wordLength = [...word].length;
-    const stemmerCutShort = LANGUAGES[lang]?.stem === 'snowball' && [...stem].length < MIN_STEM;
+    // A 4-letter stem left of a 6+ letter word is short too: подоить → подо… caught подойти, трение → трен… caught тренировки.
+    const stemLength = [...stem].length;
+    const stemmerCutShort = LANGUAGES[lang]?.stem === 'snowball'
+        && (stemLength < MIN_STEM || (stemLength === MIN_STEM && wordLength - stemLength >= 2));
     if (stemmerCutShort && wordLength >= 7) stem = [...word].slice(0, wordLength - 2).join('');
     else if (stemmerCutShort && wordLength === 6) {
         const head = [...word].slice(0, 4).join('');
-        return `(?:${letters(word, lang)}|${letters(head, lang)}\\p{L}{1,3})${NOT_WORD_AFTER}`;
+        // A stemmer stem of 4 letters keeps up to 4 (знан + иями); a shorter one up to 3, so comida never catches comisión.
+        const ending = stemLength === MIN_STEM ? '\\p{L}{1,4}' : '\\p{L}{1,3}';
+        return `(?:${letters(word, lang)}|${letters(head, lang)}${ending})${NOT_WORD_AFTER}`;
     }
     // Portuguese -ão alternates in plurals (dragão → dragões, pães): drop the final nasal vowel.
     if (lang === 'pt' && /[ãõ]$/.test(stem) && [...stem].length > MIN_STEM) stem = stem.slice(0, -1);
@@ -105,8 +114,12 @@ function wordPattern(word, stem, lang) {
     if (fleeting) {
         const [, head] = fleeting;
         const tail = fleeting[3] ?? fleeting[5];
-        return `(?:${letters(stem, lang)}\\p{L}*|${letters(head + tail, lang)}${RU_ENDINGS}${NOT_WORD_AFTER})`;
+        const open = length <= 5 ? `\\p{L}{0,5}${NOT_WORD_AFTER}` : '\\p{L}*';
+        return `(?:${letters(stem, lang)}${open}|${letters(head + tail, lang)}${RU_ENDINGS}${NOT_WORD_AFTER})`;
     }
+    // A 4-5 letter stem may add at most 5 letters: член… no longer catches членораздельно. Measured without any
+    // recall loss for these languages; Spanish, Slovak and Hungarian lost recall, so they keep the open prefix.
+    if (length <= 5 && CAPPED_ENDINGS.has(lang)) return `${letters(stem, lang)}\\p{L}{0,5}${NOT_WORD_AFTER}`;
     return `${letters(stem, lang)}\\p{L}*`;
 }
 

@@ -46,10 +46,14 @@ test('prompt carries a worked example in the target language', () => {
     assert.ok(buildPrompt([{ uid: 1, key: ['a'], content: '' }], 'ja').includes('女将'));
 });
 
-test('prompt puts entries before the rules and explains word order', () => {
+test('prompt puts entries before the rules, keeps the precision of phrase keys and explains word order', () => {
     const p = buildPrompt([{ uid: 1, key: ['a'], content: 'x' }], 'ru');
     assert.ok(p.indexOf('<entries>') < p.indexOf('<rules>'));
-    assert.match(p, /single words/i);
+    assert.match(p, /precision of the original keys/);
+    assert.match(p, /never their everyday words on their own/);
+    assert.match(p, /exactly that order/);
+    // the old advice "also give its main word on its own" turned "in the park" into a bare "park"
+    assert.doesNotMatch(p, /main word on its own/);
 });
 
 test('every language has an example', () => {

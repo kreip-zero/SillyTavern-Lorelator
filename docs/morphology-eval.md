@@ -10,18 +10,20 @@ Indonesian is not measured: UniMorph has no usable noun table for it. Its nouns 
 
 French, Italian and Portuguese UniMorph tables contain verbs only, so their nouns are not measured. Slovak uses the first 6 000 noun/adjective lemmas of a 1.6 GB table, cut by hand (not reproducible from the script alone). For Ukrainian, Polish and Slovak (stems from the AI) the script simulates the AI stem as the common prefix of all forms — a pessimistic stand-in. Form keys are built exactly as the extension builds them (the form alone, no stem). Ukrainian UniMorph has 1 416 usable lemmas.
 
-| Language | Without forms | With AI forms (shipped for ru, uk, pl, cs, hu, de) | False (with forms) |
-|---|---|---|---|
-| ru | 96.8 % (UniMorph) | **98.4 %** (UniMorph) | 3.1 % |
-| ru | 98.4 % (pymorphy) | **98.9 %** (pymorphy) | 1.4 % |
-| uk | 92.3 % (UniMorph) | **93.9 %** (UniMorph) | 5.7 % |
-| uk | 99.7 % (pymorphy) | **99.8 %** (pymorphy) | 1.3 % |
-| de | 99.1 % | **100 %** | 2.1 % |
-| es | 99.5 % | — | 4.1 % |
-| pl | 94.2 % | **95.7 %** | 6.0 % |
-| cs | 91.7 % | **96.0 %** | 5.5 % |
-| sk | 99.0 % | — | 6.9 % |
-| hu | 91.9 % | **97.6 %** | 3.2 % |
+| Language | Recall with AI forms | False (with forms) |
+|---|---|---|
+| ru (UniMorph) | **98.2 %** | 2.50 % |
+| ru (pymorphy3) | **98.8 %** | 0.92 % |
+| uk (UniMorph) | **93.9 %** | 5.29 % |
+| de | **99.9 %** | 1.48 % |
+| es | 99.5 % (no forms) | 3.72 % |
+| pl | **95.7 %** | 4.70 % |
+| cs | **96.0 %** | 4.31 % |
+| sk | 99.1 % (no forms) | 6.90 % |
+| hu | **97.2 %** | 2.62 % |
+| ru verbs (UniMorph, `--verbs`, no forms) | 73.2 % | 3.55 % |
+
+Numbers as of 2026-10-15 (after the false-hit fixes below). Before them: ru 98.4 % / 3.14 %, pymorphy 98.9 % / 1.41 %, de 100 % / 2.05 %, es 99.5 % / 4.10 %, pl 95.7 % / 5.96 %, cs 96.0 % / 5.54 %, hu 97.6 % / 3.24 %.
 
 ## Pymorphy3 evaluation (Russian and Ukrainian)
 
@@ -42,6 +44,13 @@ The pymorphy3 dictionaries (OpenCorpora-based) are more complete than UniMorph f
 Adding a third form (genitive plural) would improve Russian recall by 0.5 percentage points but cost ~75 more output tokens per entry. For Ukrainian, the third form adds no value. **Decision: keep 2 forms** — the cost/benefit of a third form doesn't justify the token increase, especially since Ukrainian sees no gain.
 
 ## Changes
+
+- **False-hit fixes (2026-10-15)**, after a real lorebook with precise phrase keys fired 40 entries per message:
+  - A 4-letter stemmer stem of a 6+ letter word is lengthened (подоить → подои…, not подо… that caught подойти; трение no longer catches тренировки).
+  - For ru, uk, pl, cs, de a 4-5 letter stem takes at most 5 more letters (член… no longer catches членораздельно). No recall loss there; Spanish lost 1.5 points, Slovak and Hungarian 0.4, so they keep the open prefix.
+  - Russian pronouns and adverbs (мой, внутри, сверху, вход…) are stopwords.
+  - The prompt now keeps the precision of the original keys: phrase keys get phrases, never their everyday words alone, and secondary keywords must be as specific as the secondary keys.
+  - Measured on the user's chat with that lorebook (`scripts/compare-on-chat.mjs`, scan depth 2, keys only): old localization 39.5 entries per window, re-localized with the new prompt and morphology 2.9 (English keys only: 0.2). What still fires is mostly real homonyms (крыло of a building, очки).
 
 - **Long words cut to a very short stem by a local stemmer** (Spanish «cañería» → «cañ»): 7+ letters keep all but their last two letters; 6-letter words get a *closed* ending of 1–3 letters, so «parada» catches «paradas» but never the preposition «para». Never applied to stems from the AI (Polish «kupiec» → «kup» is deliberate, for «kupca»).
 - **Extra forms from the AI** (genitive singular — accusative for Hungarian — and the plural), at most two per keyword: each becomes its own key when the main key does not already catch it. Forms of a stopword are ignored. A keyword equal to an author key still contributes its forms (Elara → Elary). About 150 more output tokens per entry; batches shrink automatically so replies stay under the output cap.

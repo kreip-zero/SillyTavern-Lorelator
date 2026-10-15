@@ -79,7 +79,7 @@ export function compact(items) {
             item.r = reason.readable;
             item.f = reason.fragment;
             if (reason.own) item.o = reason.own;
-            if (reason.secondary) item.s = reason.secondary.readable;
+            if (reason.secondary) { item.s = reason.secondary.readable; item.sf = reason.secondary.fragment; }
         }
         activations.push(item);
     }
@@ -93,7 +93,7 @@ export function expand(stored) {
         uid: a.u ?? a.uid,
         title: a.t ?? a.title ?? `#${a.u}`,
         reason: a.reason ?? (a.k === 'key'
-            ? { kind: 'key', readable: a.r, fragment: a.f, own: a.o ?? false, messageIndex: -1, ...(a.s ? { secondary: { readable: a.s, fragment: '' } } : {}) }
+            ? { kind: 'key', readable: a.r, fragment: a.f, own: a.o ?? false, messageIndex: -1, ...(a.s ? { secondary: { readable: a.s, fragment: a.sf ?? '' } } : {}) }
             : { kind: a.k }),
     }));
     const constants = stored?.constants;

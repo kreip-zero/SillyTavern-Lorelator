@@ -1,6 +1,6 @@
 // Measures how well our keys catch every form of a word, and how often they catch other words.
 // Data: UniMorph tables in .eval-data/unimorph/<iso3> (development only).
-// Usage: node scripts/eval-morphology.mjs <lang|all> [--sample 1500] [--forms] [--show 20]
+// Usage: node scripts/eval-morphology.mjs <lang|all> [--sample 1500] [--forms|--forms3|--ceiling] [--verbs] [--source unimorph|pymorphy] [--show 20]
 //   --forms  simulate "the AI also gives the genitive singular and nominative plural": the entry
 //            gets keys for those forms too (an entry matches when any of its keys matches).
 import { readFileSync, existsSync } from 'node:fs';
@@ -18,6 +18,8 @@ const WITH_FORMS = args.includes('--forms') || args.includes('--forms3') || args
 const FORMS3 = args.includes('--forms3');
 const CEILING = args.includes('--ceiling');
 // --source pymorphy: OpenCorpora-based dictionaries exported by scripts/export-pymorphy.py (ru, uk).
+// --verbs: measure verbs instead of nouns and adjectives (keywords like "трахать", "кончить").
+const VERBS = args.includes('--verbs');
 const SOURCE = args.includes('--source') ? args[args.indexOf('--source') + 1] : 'unimorph';
 
 function hash(text) {
@@ -37,7 +39,7 @@ function load(lang) {
         if (!lemma || !form || !feats || /\s/.test(form)) continue;
         anyForms.push({ lemma, form });
         // Comparative and superlative forms (naj-…-ejší) are separate words for lorebook keys.
-        if (!/^(N|ADJ);/.test(feats) || /CMPR|SPRL/.test(feats) || /[\s\d]/.test(lemma)) continue;
+        if (!(VERBS ? /^V;/ : /^(N|ADJ);/).test(feats) || /CMPR|SPRL/.test(feats) || /[\s\d]/.test(lemma)) continue;
         // Skip noisy rows whose form does not even start with the lemma's first letter (seen in the ukr table).
         if (form[0].toLowerCase() !== lemma[0].toLowerCase()) continue;
         if (!lemmas.has(lemma)) lemmas.set(lemma, []);

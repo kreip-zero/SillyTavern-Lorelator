@@ -49,15 +49,15 @@ export function buildPrompt(entries, lang, otherTitles = []) {
     const examples = EXAMPLE_KEYWORDS[lang];
 
     const rules = [
-        '1. Give 4-10 keywords per entry, most useful first.',
-        '2. Prefer single words. Matching ignores word endings, but a multi-word phrase only matches when its words appear in exactly that order, so whenever you give a phrase, also give its main word on its own (for example "innkeeper" as well as "innkeeper of the tavern").',
-        '3. Cover: the name (established translation and transliteration, if they differ); what a player would call it in plain words; synonyms, colloquial words and slang; things and situations that directly point to it (for example "full moon" for a moon curse). Keep the register of the entry: for violent, sexual or crude topics give the words players really write, explicit and vulgar ones included, never a softer or clinical substitute — these keywords only match text in a fiction game, a missing word leaves the entry silent.',
+        '1. Give up to 10 keywords per entry, most useful first. Fewer precise keywords are better than many loose ones.',
+        '2. Match the precision of the original keys. A single word is right when it alone points to this subject (a name, "dragon", "orgy"). When the original keys are phrases because their words are everyday words ("knot me", "in the park", "you are mine", "squat over him"), give short phrases too (2-3 words) and never their everyday words on their own. Matching ignores word endings, but a phrase only matches when its words appear in exactly that order.',
+        '3. Cover: the name (established translation and transliteration, if they differ); what a player would call it in plain words; synonyms, colloquial words and slang; things and situations that point to it unmistakably (for example "full moon" for a moon curse). Keep the register of the entry: for violent, sexual or crude topics give the words players really write, explicit and vulgar ones included, never a softer or clinical substitute — these keywords only match text in a fiction game, a missing word leaves the entry silent.',
         '4. Go by what the entry is about, not by a literal translation of its keys.',
-        '5. Use the dictionary form of each word. Leave out words so common that they appear in most messages (pronouns, "house", "time", "people", "go"), and words that would fit many other entries of a lorebook just as well ("blood", "wound", "meat", "market", "sell", "party").',
+        '5. Use the dictionary form of each word. Every keyword must point to this entry by itself: leave out words a player could write in an unrelated scene, even if they fit the entry (pronouns, "house", "time", "go", "water", "park", "lock", "mine", "clothes", "drink", "smell", "on top", "rub", "inside", "fill"), and words that would fit many other entries of a lorebook just as well ("blood", "wound", "meat", "market", "sell", "party").',
     ];
     rules.push(
         `6. If an entry's keys are already in ${name}, return an empty "keywords" list for it.`,
-        '7. If an entry has "secondary" keys (extra words that must also appear for the entry to trigger), also give "secondary_keywords": the same kind of words for those secondary keys.',
+        '7. If an entry has "secondary" keys (extra words that must also appear for the entry to trigger), also give "secondary_keywords": the same kind of words for those secondary keys, just as specific as they are (no everyday words such as "inside" or "enter" unless that is what the secondary key itself says).',
     );
     if (withStem) {
         rules.push(`8. For every keyword also give "stem": the same words in the same order, each cut to the part that stays unchanged in all ${name} grammatical forms.`);
