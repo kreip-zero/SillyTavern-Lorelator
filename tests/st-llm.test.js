@@ -35,3 +35,18 @@ test('Cancel stops waiting for a request that cannot be aborted', async () => {
     assert.equal(await untilAborted(Promise.resolve('ok'), new AbortController().signal), 'ok');
     await assert.rejects(untilAborted(Promise.resolve('late'), controller.signal), { name: 'AbortError' });
 });
+
+test('a request that never answers fails after the timeout instead of keeping the panel busy', async () => {
+    const { createLlm } = await import('../src/st-llm.js');
+    globalThis.SillyTavern = { getContext: () => ({ eventSource: { on() {}, removeListener() {} }, eventTypes: {}, generateRaw: () => new Promise(() => {}) }) };
+    try {
+        const llm = createLlm({ mode: 'current' }, { timeoutMs: 30 });
+        await assert.rejects(llm.send('x'), e => e.code === 'NETWORK_TIMEOUT' && e.retryable === false);
+        const controller = new AbortController();
+        const waiting = createLlm({ mode: 'current' }, { timeoutMs: 10_000 }).send('x', controller.signal);
+        controller.abort();
+        await assert.rejects(waiting, { name: 'AbortError' });
+    } finally {
+        delete globalThis.SillyTavern;
+    }
+});

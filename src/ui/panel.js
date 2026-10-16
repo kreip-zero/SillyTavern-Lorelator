@@ -218,6 +218,8 @@ async function localize(todoOverride) {
     controller = new AbortController();
     setBusy(true);
     showStatus(t`Processed ${0} of ${todo.length}`, 0, todo.length);
+    // Kept in the console so a stuck or failed run can be traced afterwards.
+    console.info('[Lorelator] run started', { book: s.book, lang: s.lang, entries: todo.length, connection: s.connMode });
     try {
         const result = await runLocalization({
             name: s.book,
@@ -242,6 +244,7 @@ ${t`Last error: ${errorText(result.lastError, translate)}`}` : summary, todo.len
         console.error('[Lorelator]', error);
         showStatus(t`Error: ${errorText(error, translate)}`);
     } finally {
+        console.info('[Lorelator] run finished', { book: s.book });
         controller = null;
         setBusy(false);
     }

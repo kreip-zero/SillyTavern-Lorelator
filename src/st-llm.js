@@ -12,6 +12,8 @@ import { customRequestFields, modelListBody } from './providers.js';
 import { LocalizerError, classify } from './errors.js';
 
 const DEFAULT_MAX_TOKENS = 4096;
+// No answer after this long counts as a failed batch (the run goes on; "Retry failed entries" tries it again).
+const REQUEST_TIMEOUT_MS = 5 * 60 * 1000;
 
 /**
  * Text of a model reply. Reasoning models return { content, reasoning }; when the reasoning uses
@@ -107,15 +109,27 @@ export async function listModels(conn) {
  * @param {{ mode: 'current'|'profile'|'custom', profileId?: string, model?: string, providerId?: string, url?: string, key?: string }} conn
  * @returns {{ send: (prompt: string, signal?: AbortSignal, maxTokens?: number) => Promise<string>, modelId: string }}
  */
-export function createLlm(conn) {
+export function createLlm(conn, { timeoutMs = REQUEST_TIMEOUT_MS } = {}) {
     const llm = createRawLlm(conn);
     const send = llm.send;
-    // Provider errors become LocalizerErrors, so a wrong key or an empty balance is not retried.
-    llm.send = async (...args) => {
+    llm.send = async (prompt, signal, maxTokens) => {
+        // A request that never answers would keep the panel busy until the page is reloaded: give up after a
+        // while, and let Cancel stop waiting at once even if the connection ignores the signal.
+        const own = new AbortController();
+        const cancel = () => own.abort();
+        signal?.addEventListener('abort', cancel, { once: true });
+        if (signal?.aborted) own.abort();
+        let timedOut = false;
+        const timer = setTimeout(() => { timedOut = true; own.abort(); }, timeoutMs);
         try {
-            return await send(...args);
+            return await untilAborted(send(prompt, own.signal, maxTokens), own.signal);
         } catch (error) {
+            if (timedOut) throw Object.assign(new LocalizerError('NETWORK_TIMEOUT', [], error), { retryable: false });
+            // Provider errors become LocalizerErrors, so a wrong key or an empty balance is not retried.
             throw classify(error);
+        } finally {
+            clearTimeout(timer);
+            signal?.removeEventListener('abort', cancel);
         }
     };
     return llm;
