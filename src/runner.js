@@ -147,7 +147,7 @@ export async function runLocalization({ name, lang, todo, batchSize = 15, io, ll
         if (signal?.aborted) { cancelled = true; break; }
         const uids = batch.map(e => e.uid);
         const seen = new Map(batch.map(e => [e.uid, snapshot(e)]));
-        const prompt = buildPrompt([...seen.values()], lang, [...titles].filter(([uid]) => !seen.has(uid)).map(([, title]) => title));
+        const prompt = buildPrompt([...seen.values()], lang, [...titles].filter(([uid]) => !seen.has(uid)).map(([, title]) => title), name);
         const maxTokens = Math.min(MAX_TOKENS_CAP, Math.max(MAX_TOKENS_FLOOR, batch.length * outputTokensPerEntry(lang) * 2));
 
         let reply;

@@ -29,6 +29,7 @@ const USER_MESSAGES = {
     'INVALID_API_KEY': 'The API key contains invalid characters.',
     'PROFILE_NOT_FOUND': 'The selected connection profile no longer exists.',
     'LOREBOOK_NOT_FOUND': 'Lorebook "${0}" not found.',
+    'CARD_NOT_FOUND': 'Character card "${0}" not found.',
     'BACKUP_NOT_FOUND': 'Backup file not found.',
     'BACKUP_CORRUPTED': 'Backup is empty or damaged.',
     'NOT_A_BACKUP': 'This is not a backup lorebook.',

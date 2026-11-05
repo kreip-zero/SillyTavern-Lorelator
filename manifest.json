@@ -6,7 +6,7 @@
     "js": "index.js",
     "css": "style.css",
     "author": "kreip-zero",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "homePage": "https://github.com/kreip-zero/SillyTavern-Lorelator",
     "i18n": {
         "ru-ru": "i18n/ru-ru.json"

@@ -5,6 +5,12 @@ import { applyMorphology, planLocalization, planMorphology, runLocalization } fr
 import { BACKUP_MARK, createIo, deleteBackup, listBackups, listLorebooks, makeBackup, restoreBackup } from '../st-lorebook.js';
 import { createLlm, listModels, listProfiles } from '../st-llm.js';
 import { LocalizerError, errorText } from '../errors.js';
+import { applyGreetings, collectGreetings } from '../greetings.js';
+import { translateGreetings } from '../greetings-run.js';
+import { greetingsBackupAt, hasGreetingsBackup, listCharacters, readCard, restoreChatGreeting, restoreGreetings, saveGreetingsBackup, syncOpenChat, writeGreetings } from '../st-cards.js';
+import { reviewGreetings } from './greetings-view.js';
+import { describeBook, describeCard, formatLines, formatTokens } from './summary.js';
+import { initPicker } from './picker.js';
 
 const NS = 'lorebookLocalizer';
 const DEFAULTS = {
@@ -20,6 +26,12 @@ const DEFAULTS = {
     apiKey: '',
     customModel: '',
     backupVisible: false,
+    view: 'books',
+    greetingWriteForPlayer: true,
+    greetingChar: '',
+    // '' = not chosen yet: "keep" until rules are written, then "rules".
+    greetingMode: '',
+    greetingFormat: '',
 };
 
 const ctx = () => SillyTavern.getContext();
@@ -44,6 +56,7 @@ function settings() {
 function saveSettings(patch) {
     Object.assign(settings(), patch);
     ctx().saveSettingsDebounced();
+    updateChip();
 }
 
 function fillSelect(select, options, value) {
@@ -76,6 +89,94 @@ function showConnection() {
     $id('lbl_conn_profile').hidden = s.connMode !== 'profile';
     $id('lbl_conn_custom').hidden = s.connMode !== 'custom';
     $id('lbl_url_field').hidden = s.providerId !== 'custom';
+    for (const button of $id('lbl_conn_seg').querySelectorAll('button')) button.classList.toggle('on', button.dataset.mode === s.connMode);
+    $id('lbl_conn_hint').textContent = {
+        current: t`Uses whatever SillyTavern is connected to right now.`,
+        profile: t`Uses a saved connection profile. The profile's preset is not used.`,
+        custom: t`Calls the service directly through the SillyTavern server.`,
+    }[s.connMode] ?? '';
+    updateChip();
+}
+
+/** Text and dot of the connection chip in the header. */
+function updateChip() {
+    const chip = $id('lbl_chip_text');
+    if (!chip) return;
+    const s = settings();
+    let name;
+    let model = '';
+    let ready = true;
+    if (s.connMode === 'profile') {
+        const profile = listProfiles().find(p => p.id === s.profileId);
+        name = profile?.name ?? t`No profile`;
+        model = s.profileModel;
+        ready = Boolean(profile);
+    } else if (s.connMode === 'custom') {
+        name = PROVIDERS.find(p => p.id === s.providerId)?.name ?? t`Own service`;
+        model = s.customModel;
+        ready = Boolean(model);
+    } else {
+        name = t`Current connection`;
+    }
+    chip.textContent = model ? `${name} · ${model}` : name;
+    $id('lbl_chip_dot').classList.toggle('ok', ready);
+}
+
+const VIEWS = ['books', 'greetings', 'more'];
+
+function showView(name) {
+    const view = VIEWS.includes(name) ? name : 'books';
+    for (const id of VIEWS) $id(`lbl_view_${id}`).hidden = id !== view;
+    for (const button of $id('lbl_tabs').querySelectorAll('button')) {
+        const on = button.dataset.view === view;
+        button.classList.toggle('on', on);
+        button.setAttribute('aria-selected', String(on));
+    }
+    if (settings().view !== view) saveSettings({ view });
+}
+
+function stat(count, label, extra = '') {
+    const node = document.createElement('span');
+    node.className = `lbl-stat ${extra}`.trim();
+    const number = document.createElement('b');
+    number.textContent = String(count);
+    node.append(number, ` ${label}`);
+    return node;
+}
+
+let statsRun = 0;
+
+/** Counts and the main button of the lorebook view, from a local dry run (no AI, no changes). */
+async function refreshBookStats() {
+    const s = settings();
+    const run = ++statsRun;
+    const stats = $id('lbl_book_stats');
+    $id('lbl_empty_books').hidden = listLorebooks().some(n => !n.includes(BACKUP_MARK));
+    const idle = text => {
+        stats.replaceChildren();
+        $id('lbl_run').disabled = true;
+        $id('lbl_run_text').textContent = text;
+        $id('lbl_run_sub').textContent = '';
+    };
+    if (!s.book) return idle(t`Choose a lorebook`);
+    let book;
+    try {
+        book = await io().load(s.book);
+    } catch {
+        return idle(t`Choose a lorebook`);
+    }
+    if (run !== statsRun) return;
+    const d = describeBook(book, planLocalization(book, s.lang, { onlyChanged: false, batchSize: s.batchSize }));
+    stats.replaceChildren(
+        stat(d.localized, t`localized`, 'ok'),
+        stat(d.newCount, t`new`, d.newCount ? 'new' : ''),
+        stat(d.changed, t`edited`),
+        ...(d.native ? [stat(d.native, t`in your language`)] : []),
+        stat(d.skipped, t`skipped`),
+    );
+    $id('lbl_run').disabled = Boolean(controller) || d.todo === 0;
+    $id('lbl_run_text').textContent = d.todo ? t`Localize (${d.todo})` : t`Nothing to localize`;
+    $id('lbl_run_sub').textContent = d.todo ? t`About ${formatTokens(d.tokens)} input tokens` : '';
 }
 
 /** The connection described by the current settings. */
@@ -127,19 +228,161 @@ async function showHelp() {
 }
 
 function setBusy(busy) {
-    for (const id of ['lbl_run', 'lbl_inflect', 'lbl_remove', 'lbl_book', 'lbl_lang', 'lbl_conn_mode', 'lbl_profile', 'lbl_provider', 'lbl_backup_make']) {
+    for (const id of ['lbl_run', 'lbl_inflect', 'lbl_remove', 'lbl_book', 'lbl_lang', 'lbl_conn_mode', 'lbl_profile', 'lbl_provider', 'lbl_backup_make', 'lbl_gr_run', 'lbl_gr_char']) {
         $id(id).disabled = busy;
     }
     $id('lbl_cancel').hidden = !busy;
     if (busy) $id('lbl_retry').hidden = true;
     refreshBackups();
+    refreshGreetings();
+    if (!busy) refreshBookStats();
+}
+
+function greetingMode() {
+    const s = settings();
+    return s.greetingMode || (s.greetingFormat.trim() ? 'rules' : 'keep');
+}
+
+function refreshGreetings() {
+    const s = settings();
+    const chars = listCharacters();
+    fillSelect($id('lbl_gr_char'), chars.map(c => [c.avatar, c.name]), s.greetingChar);
+    if (chars.length && $id('lbl_gr_char').value !== s.greetingChar) saveSettings({ greetingChar: $id('lbl_gr_char').value });
+    $id('lbl_empty_chars').hidden = chars.length > 0;
+    $id('lbl_gr_mode').value = greetingMode();
+    $id('lbl_gr_rules_field').hidden = greetingMode() !== 'rules';
+    for (const button of $id('lbl_gr_seg').querySelectorAll('button')) button.classList.toggle('on', button.dataset.mode === greetingMode());
+    updateRulesLabel();
+    $id('lbl_gr_player').checked = s.greetingWriteForPlayer;
+
+    // The characters list in memory already holds the greetings, so the counts need no request.
+    const card = ctx().characters?.find(c => c.avatar === s.greetingChar);
+    const d = describeCard(card ?? {});
+    const total = (d.hasFirst ? 1 : 0) + d.alternates;
+    $id('lbl_gr_avatar').style.backgroundImage = s.greetingChar ? `url("/thumbnail?type=avatar&file=${encodeURIComponent(s.greetingChar)}")` : '';
+    $id('lbl_gr_stats').replaceChildren(
+        ...(d.hasFirst ? [stat(1, t`first message`)] : []),
+        stat(d.alternates, t`alternates`),
+        stat(formatTokens(d.chars), t`characters of text`),
+    );
+    renderGreetingList(collectGreetings(card ?? {}));
+    const at = greetingsBackupAt(s.greetingChar);
+    $id('lbl_gr_restore_sub').textContent = at ? `· ${new Date(at).toLocaleDateString()}` : '';
+    $id('lbl_gr_restore').disabled = Boolean(controller) || !s.greetingChar || !hasGreetingsBackup(s.greetingChar);
+}
+
+// Which greetings to translate. Reset to "all" when the character changes.
+let pick = { avatar: '', ids: new Set() };
+
+function greetingName(id) {
+    if (id === 'first') return t`First message`;
+    const n = Number(id.split(':')[1]) + 1;
+    return t`Alternate ${n}`;
+}
+
+function renderGreetingList(items) {
+    const avatar = settings().greetingChar;
+    if (pick.avatar !== avatar) pick = { avatar, ids: new Set(items.map(g => g.id)) };
+    else pick.ids = new Set(items.filter(g => pick.ids.has(g.id)).map(g => g.id));
+    $id('lbl_gr_list').replaceChildren(...items.map(g => {
+        const row = document.createElement('label');
+        row.className = 'lbl-gr-row';
+        const box = Object.assign(document.createElement('input'), { type: 'checkbox', checked: pick.ids.has(g.id) });
+        box.dataset.id = g.id;
+        const name = Object.assign(document.createElement('b'), { textContent: greetingName(g.id) });
+        const preview = Object.assign(document.createElement('small'), { textContent: g.text.replace(/\s+/g, ' ').trim().slice(0, 80) });
+        row.append(box, name, preview);
+        return row;
+    }));
+    $id('lbl_gr_n').max = String(items.length || 1);
+    updateGreetingRun(items.length);
+}
+
+function setPicked(ids) {
+    pick.ids = new Set(ids);
+    for (const box of $id('lbl_gr_list').querySelectorAll('input')) box.checked = pick.ids.has(box.dataset.id);
+    updateGreetingRun($id('lbl_gr_list').children.length);
+}
+
+function updateGreetingRun(total) {
+    const picked = pick.ids.size;
+    $id('lbl_gr_pick_title').textContent = total ? t`What to translate (${picked} of ${total})` : t`What to translate`;
+    $id('lbl_gr_run').disabled = Boolean(controller) || picked === 0;
+    $id('lbl_gr_run_text').textContent = !total ? t`No greetings in this card` : picked ? t`Translate greetings (${picked})` : t`Select greetings to translate`;
+}
+
+function updateRulesLabel() {
+    const lines = formatLines($id('lbl_gr_rules').value);
+    $id('lbl_gr_lines').textContent = lines ? t`Formatting rules (${lines})` : t`Formatting rules`;
+}
+
+async function translateCardGreetings() {
+    const s = settings();
+    if (!s.greetingChar) return toastr.warning(t`Choose a character`);
+    const rules = greetingMode() === 'rules' ? s.greetingFormat : '';
+    const llm = createLlm(connection());
+    const card = await readCard(s.greetingChar);
+    if (!collectGreetings(card).length) return toastr.info(t`Nothing to translate: this card has no greetings`);
+    if (!pick.ids.size) return toastr.warning(t`Select greetings to translate`);
+
+    controller = new AbortController();
+    setBusy(true);
+    showStatus(t`Translating greetings…`);
+    let result;
+    try {
+        result = await translateGreetings({
+            card, lang: s.lang, rules, writeForPlayer: s.greetingWriteForPlayer, ids: new Set(pick.ids), llm, signal: controller.signal,
+            onProgress: ({ processed, total }) => showStatus(t`Translating greetings: ${processed} of ${total}`, processed, total),
+        });
+    } catch (error) {
+        console.error('[Lorelator]', error);
+        showStatus(t`Error: ${errorText(error, translate)}`);
+        return;
+    } finally {
+        controller = null;
+        setBusy(false);
+    }
+    if (result.cancelled) return showStatus(t`Stopped.`);
+    if (!result.proposals.length) return showStatus(t`The model returned no usable greetings. Try again or pick another model.`);
+    showStatus(result.failed.length ? t`Translated: ${result.proposals.length}, without an answer: ${result.failed.length}` : t`Translated: ${result.proposals.length}`);
+
+    const accepted = await reviewGreetings(result.proposals);
+    if (!accepted?.size) return;
+    await saveGreetingsBackup(s.greetingChar, card);
+    const patch = applyGreetings(card, accepted);
+    await writeGreetings(s.greetingChar, patch);
+    refreshGreetings();
+    toastr.success(t`Greetings saved: ${accepted.size}`);
+    const updated = await syncOpenChat(s.greetingChar, greetingsOf(card), greetingsOf({ ...card, ...patch, data: { ...card.data, ...patch.data } }));
+    if (updated) toastr.info(t`The first message of the open chat was updated too`);
+}
+
+async function restoreCardGreetings() {
+    const s = settings();
+    if (!(await confirm(textBlock(t`Put the original greetings back into this card? The translated ones will be replaced.`), t`Restore`))) return;
+    const before = await readCard(s.greetingChar);
+    if (!(await restoreGreetings(s.greetingChar))) {
+        toastr.info(t`No backup of the original greetings`);
+        return refreshGreetings();
+    }
+    toastr.success(t`Original greetings restored`);
+    refreshGreetings();
+    // The chat's own saved copy is exact; without one, swap the texts like after a translation.
+    const chatRestored = await restoreChatGreeting(s.greetingChar)
+        || await syncOpenChat(s.greetingChar, greetingsOf(before), greetingsOf(await readCard(s.greetingChar)));
+    if (chatRestored) toastr.info(t`The first message of the open chat was updated too`);
+}
+
+function greetingsOf(card) {
+    return { first_mes: card.data?.first_mes ?? card.first_mes ?? '', alternate_greetings: card.data?.alternate_greetings ?? [] };
 }
 
 function showStatus(text, processed = 0, total = 1) {
     $id('lbl_status').hidden = false;
     $id('lbl_status_text').textContent = text;
-    $id('lbl_progress').max = Math.max(total, 1);
-    $id('lbl_progress').value = processed;
+    const percent = Math.round((100 * processed) / Math.max(total, 1));
+    $id('lbl_progress').style.setProperty('--p', String(percent));
+    $id('lbl_pct').textContent = `${percent}%`;
 }
 
 function textBlock(...lines) {
@@ -373,9 +616,47 @@ export async function initPanel() {
     bindText('lbl_custom_model', 'customModel');
     refreshLists();
     showConnection();
+    $id('lbl_lang').title = t`Language you play in`;
+    $id('lbl_lang').setAttribute('aria-label', t`Language you play in`);
+    showView(s.view);
 
-    $id('lbl_book').addEventListener('change', e => { saveSettings({ book: e.target.value }); forgetFailed(); refreshBackups(); });
-    $id('lbl_lang').addEventListener('change', e => { saveSettings({ lang: e.target.value }); forgetFailed(); });
+    const pickerTexts = { search: t`Search…`, none: t`Nothing found`, count: (shown, total) => t`${shown} of ${total}` };
+    initPicker({ button: $id('lbl_book_btn'), select: $id('lbl_book'), panel: $id('lbl_book_picker'), texts: pickerTexts });
+    initPicker({
+        button: $id('lbl_gr_char_btn'),
+        select: $id('lbl_gr_char'),
+        panel: $id('lbl_gr_char_picker'),
+        texts: pickerTexts,
+        thumb: avatar => `/thumbnail?type=avatar&file=${encodeURIComponent(avatar)}`,
+    });
+
+    $id('lbl_tabs').addEventListener('click', e => {
+        const button = e.target.closest('button[data-view]');
+        if (button) showView(button.dataset.view);
+    });
+    $id('lbl_conn_chip').addEventListener('click', () => {
+        const open = $id('lbl_conn_sheet').hidden;
+        $id('lbl_conn_sheet').hidden = !open;
+        $id('lbl_conn_chip').setAttribute('aria-expanded', String(open));
+    });
+    $id('lbl_conn_seg').addEventListener('click', e => {
+        const button = e.target.closest('button[data-mode]');
+        if (!button) return;
+        $id('lbl_conn_mode').value = button.dataset.mode;
+        saveSettings({ connMode: button.dataset.mode });
+        showConnection();
+    });
+    $id('lbl_gr_seg').addEventListener('click', e => {
+        const button = e.target.closest('button[data-mode]');
+        if (!button) return;
+        saveSettings({ greetingMode: button.dataset.mode });
+        refreshGreetings();
+    });
+    $id('lbl_gr_player').addEventListener('change', e => saveSettings({ greetingWriteForPlayer: e.target.checked }));
+    $id('lbl_gr_rules').addEventListener('input', updateRulesLabel);
+
+    $id('lbl_book').addEventListener('change', e => { saveSettings({ book: e.target.value }); forgetFailed(); refreshBackups(); refreshBookStats(); });
+    $id('lbl_lang').addEventListener('change', e => { saveSettings({ lang: e.target.value }); forgetFailed(); refreshBookStats(); });
     $id('lbl_conn_mode').addEventListener('change', e => { saveSettings({ connMode: e.target.value }); showConnection(); });
     $id('lbl_profile').addEventListener('change', e => {
         saveSettings({ profileId: e.target.value, profileModel: '' });
@@ -393,11 +674,12 @@ export async function initPanel() {
         const n = Math.min(30, Math.max(5, Math.round(Number(e.target.value)) || DEFAULTS.batchSize));
         e.target.value = String(n);
         saveSettings({ batchSize: n });
+        refreshBookStats();
     });
     // Lorebooks and profiles can be added while ST is open; refresh when the drawer is opened.
     // (Not on select focus: rebuilding options closes the native picker on phones.)
     document.querySelector('.lbl-panel .inline-drawer-toggle').addEventListener('click', () => {
-        if (!controller) { refreshLists(); refreshBackups(); }
+        if (!controller) { refreshLists(); refreshBackups(); refreshGreetings(); refreshBookStats(); updateChip(); }
     });
 
     $id('lbl_profile_load').addEventListener('click', guard(() => loadModels('lbl_profile_models')));
@@ -412,6 +694,23 @@ export async function initPanel() {
     $id('lbl_backup_delete').addEventListener('click', guard(busy(deleteSelected)));
     $id('lbl_backup_visible').checked = settings().backupVisible;
     $id('lbl_backup_visible').addEventListener('change', e => saveSettings({ backupVisible: e.target.checked }));
+    $id('lbl_gr_rules').value = s.greetingFormat;
+    $id('lbl_gr_char').addEventListener('change', e => { saveSettings({ greetingChar: e.target.value }); refreshGreetings(); });
+    $id('lbl_gr_mode').addEventListener('change', e => { saveSettings({ greetingMode: e.target.value }); refreshGreetings(); });
+    $id('lbl_gr_rules').addEventListener('change', e => saveSettings({ greetingFormat: e.target.value.trim() }));
+    $id('lbl_gr_run').addEventListener('click', guard(translateCardGreetings));
+    $id('lbl_gr_restore').addEventListener('click', guard(restoreCardGreetings));
+    $id('lbl_gr_list').addEventListener('change', event => {
+        const id = event.target.dataset?.id;
+        if (!id) return;
+        if (event.target.checked) pick.ids.add(id); else pick.ids.delete(id);
+        updateGreetingRun($id('lbl_gr_list').children.length);
+    });
+    const allIds = () => [...$id('lbl_gr_list').querySelectorAll('input')].map(box => box.dataset.id);
+    $id('lbl_gr_all').addEventListener('click', () => setPicked(allIds()));
+    $id('lbl_gr_none').addEventListener('click', () => setPicked([]));
+    $id('lbl_gr_first_msg').addEventListener('click', () => setPicked(allIds().filter(id => id === 'first')));
+    $id('lbl_gr_take').addEventListener('click', () => setPicked(allIds().slice(0, Math.max(0, Math.floor(Number($id('lbl_gr_n').value)) || 0))));
     $id('lbl_cancel').addEventListener('click', () => {
         if (!controller) return;
         controller.abort();

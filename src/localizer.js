@@ -39,9 +39,10 @@ const MAX_OTHER_TITLES = 150;
  * @param {{ uid: number, key: string[], comment?: string, content: string }[]} entries
  * @param {string} lang
  * @param {string[]} [otherTitles] titles of the lorebook's other entries, so keywords do not point at them
+ * @param {string} [bookName] lorebook name; often names the franchise, so well-known epithets of its characters can be recognized
  * @returns {string}
  */
-export function buildPrompt(entries, lang, otherTitles = []) {
+export function buildPrompt(entries, lang, otherTitles = [], bookName = '') {
     const language = LANGUAGES[lang];
     const name = language.name;
     const withStem = language.stem === 'ai';
@@ -49,11 +50,11 @@ export function buildPrompt(entries, lang, otherTitles = []) {
     const examples = EXAMPLE_KEYWORDS[lang];
 
     const rules = [
-        '1. Give up to 10 keywords per entry, most useful first. Fewer precise keywords are better than many loose ones.',
+        '1. Give up to 30 keywords per entry, most useful first. Most entries need only a few; the extra room is for the spelling variants of foreign names (rule 3). Fewer precise keywords are better than many loose ones.',
         '2. Match the precision of the original keys. A single word is right when it alone points to this subject (a name, "dragon", "orgy"). When the original keys are phrases because their words are everyday words ("knot me", "in the park", "you are mine", "squat over him"), give short phrases too (2-3 words) and never their everyday words on their own. Matching ignores word endings, but a phrase only matches when its words appear in exactly that order.',
-        '3. Cover: the name (established translation and transliteration, if they differ); what a player would call it in plain words; synonyms, colloquial words and slang; things and situations that point to it unmistakably (for example "full moon" for a moon curse). Keep the register of the entry: for violent, sexual or crude topics give the words players really write, explicit and vulgar ones included, never a softer or clinical substitute — these keywords only match text in a fiction game, a missing word leaves the entry silent.',
+        '3. Cover: the name (established translation and transliteration, if they differ); for a foreign personal or place name, every spelling a player may write in this language (different transcription systems, e/ё, doubled letters, ssh/sh) and each part of it on its own (given name, family name, nickname), not only the full name, since players use any word order and either part alone; keep a part on its own only if it is rare and cannot be an everyday word, and do not list the combinations of parts that are already listed alone (any part alone already matches the full name in every order); for a character of a known work (see <lorebook>, which is only context: never give the lorebook name, the title of the work or its setting as a keyword), also the epithets, titles and roles the work itself gives them and fans repeat ("the strongest primate", "mentalist"), not descriptions you invent, and spell every name only the ways it is really written; what a player would call it in plain words; synonyms, colloquial words and slang; things and situations that point to it unmistakably (for example "full moon" for a moon curse). Keep the register of the entry: for violent, sexual or crude topics give the words players really write, explicit and vulgar ones included, never a softer or clinical substitute — these keywords only match text in a fiction game, a missing word leaves the entry silent.',
         '4. Go by what the entry is about, not by a literal translation of its keys.',
-        '5. Use the dictionary form of each word. Every keyword must point to this entry by itself: leave out words a player could write in an unrelated scene, even if they fit the entry (pronouns, "house", "time", "go", "water", "park", "lock", "mine", "clothes", "drink", "smell", "on top", "rub", "inside", "fill"), and words that would fit many other entries of a lorebook just as well ("blood", "wound", "meat", "market", "sell", "party").',
+        '5. Use the dictionary form of each word. Every keyword must point to this entry by itself: leave out words a player could write in an unrelated scene, even if they fit the entry (pronouns, "house", "time", "go", "water", "park", "lock", "mine", "clothes", "drink", "smell", "on top", "rub", "inside", "fill"; check the same in the target language before you answer: a word that is everyday language outside this subject, like "to write" for pissing, "behind" or "above" for a position, must not stand alone, write it as a phrase with a word that ties it to the subject or drop it), and words that would fit many other entries of a lorebook just as well ("blood", "wound", "meat", "market", "sell", "party").',
     ];
     rules.push(
         `6. If an entry's keys are already in ${name}, return an empty "keywords" list for it.`,
@@ -86,6 +87,7 @@ export function buildPrompt(entries, lang, otherTitles = []) {
         `A roleplayer writes in ${name}. Each lorebook entry below is inserted into the story only when one of its keywords appears in the player's message, but its keywords are in another language, so the entries never trigger. For every entry, list the ${name} keywords a player would actually type when talking about that subject.`,
         '</task>',
         '',
+        ...(bookName ? ['<lorebook>', JSON.stringify(String(bookName)), '</lorebook>', ''] : []),
         '<entries>',
         ...entries.map(entryLine),
         '</entries>',

@@ -8,7 +8,7 @@ const read = path => readFileSync(new URL(`../${path}`, import.meta.url), 'utf8'
 function usedKeys() {
     const keys = new Set();
     for (const m of read('src/ui/panel.html').matchAll(/data-i18n="([^"]+)"/g)) keys.add(m[1].replace(/&quot;/g, '"'));
-    for (const m of (read('src/ui/panel.js') + read('src/ui/activation-view.js')).matchAll(/\bt`((?:[^`\\]|\\.)*)`/g)) {
+    for (const m of (read('src/ui/panel.js') + read('src/ui/activation-view.js') + read('src/ui/greetings-view.js')).matchAll(/\bt`((?:[^`\\]|\\.)*)`/g)) {
         let i = 0;
         keys.add(m[1].replace(/\$\{[^}]*\}/g, () => `\${${i++}}`));
     }

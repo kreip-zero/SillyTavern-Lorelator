@@ -40,6 +40,7 @@ Behind each row is an ordinary regex key, for example `/(?<![\p{L}\p{N}])тав[
 - **Fired entries.** A book icon (in the input bar or floating) lists the entries that fired for the last reply and the word that triggered each one. Optionally the same list appears under every reply. The phrase tester shows what any text would trigger.
 - **Safe changes.** Added keys are marked and can be removed with one button. A backup copy is made before every change.
 - **Clear errors.** A wrong API key, an empty balance, an unknown model or a content filter each get a plain explanation. Errors that would repeat for every batch stop the run immediately.
+- **Greetings.** The first message and the alternate greetings of a character can be translated into the same language and written into the card. The card's formatting is kept as it is, or, if formatting rules are entered, the greetings are rewritten to follow them. The result is shown before saving, and the original greetings can be restored.
 - **Any model.** It works with the current SillyTavern connection, a saved connection profile or any OpenAI-compatible service.
 
 ## Supported languages
@@ -81,7 +82,7 @@ If the installer is unavailable, for example when the server has no git: downloa
 
 ## Usage
 
-1. Open **Extensions → Lorelator**.
+1. Open **Extensions → Lorelator**. The panel has three tabs (**Lorebooks**, **Greetings**, **More**). The chip in the header shows the current connection and opens its settings; the pill next to it sets the language you play in.
 2. Pick the lorebook, the language you play in and how to connect to the AI:
    - **Current SillyTavern connection**: whatever is connected right now.
    - **Saved connection profile**: any Connection Manager profile. **Load models** lets you pick another model of the same service. The profile's preset is not used.
@@ -93,6 +94,8 @@ Other controls (the **?** button explains each of them in the app):
 - **Word forms for existing keys**: free, no AI. Adds word-form matching to keys that are already in your language, for lorebooks you started translating by hand.
 - **Remove localization**: removes the keys added for the selected language. Your own keys stay.
 - **Backups**: create, restore or delete copies of the lorebook. Copies are hidden files by default and can be saved as regular lorebooks instead.
+
+**Greetings** (section in the same panel): choose a character, choose whether to keep the card's formatting or use your own formatting rules (a free text field, empty by default), then press **Translate greetings**. The original and the translation are shown side by side. A greeting that lost a macro such as `{{user}}`, an HTML tag or a code block is flagged and unticked. Saving keeps the first original greetings, and **Restore original greetings** puts them back.
 
 Running Localize again only processes new entries and entries edited since the last run. Always-on entries, disabled entries and entries without keys are skipped.
 

@@ -5,119 +5,231 @@
             <div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div>
         </div>
         <div class="inline-drawer-content">
-            <label class="lbl-field"><span data-i18n="Lorebook">Lorebook</span>
-                <select id="lbl_book" class="text_pole"></select>
-            </label>
-            <label class="lbl-field"><span data-i18n="Language you play in">Language you play in</span>
-                <select id="lbl_lang" class="text_pole"></select>
-            </label>
+            <div class="lbl-app">
 
-            <label class="lbl-field"><span data-i18n="How to connect to the AI">How to connect to the AI</span>
-                <select id="lbl_conn_mode" class="text_pole">
-                    <option value="current" data-i18n="Current SillyTavern connection">Current SillyTavern connection</option>
-                    <option value="profile" data-i18n="Saved connection profile">Saved connection profile</option>
-                    <option value="custom" data-i18n="Own service and API key">Own service and API key</option>
-                </select>
-            </label>
-
-            <div id="lbl_conn_profile" class="lbl-conn" hidden>
-                <label class="lbl-field"><span data-i18n="Profile">Profile</span>
-                    <select id="lbl_profile" class="text_pole"></select>
-                </label>
-                <label class="lbl-field"><span data-i18n="Model (empty = the profile's model)">Model (empty = the profile's model)</span>
-                    <span class="lbl-row lbl-model">
-                        <input id="lbl_profile_model" class="text_pole" type="text" list="lbl_profile_models" autocomplete="off">
-                        <datalist id="lbl_profile_models"></datalist>
-                        <button id="lbl_profile_load" class="menu_button" type="button" data-i18n="Load models">Load models</button>
-                    </span>
-                </label>
-            </div>
-
-            <div id="lbl_conn_custom" class="lbl-conn" hidden>
-                <label class="lbl-field"><span data-i18n="Service">Service</span>
-                    <select id="lbl_provider" class="text_pole"></select>
-                </label>
-                <label id="lbl_url_field" class="lbl-field" hidden><span data-i18n="Service URL (OpenAI-compatible)">Service URL (OpenAI-compatible)</span>
-                    <input id="lbl_url" class="text_pole" type="url" placeholder="http://localhost:1234/v1" autocomplete="off">
-                </label>
-                <label class="lbl-field"><span data-i18n="API key">API key</span>
-                    <input id="lbl_key" class="text_pole" type="password" autocomplete="off" spellcheck="false">
-                    <small class="lbl-warning" data-i18n="The key is stored in SillyTavern settings as plain text, and other extensions can read it.">The key is stored in SillyTavern settings as plain text, and other extensions can read it.</small>
-                </label>
-                <label class="lbl-field"><span data-i18n="Model">Model</span>
-                    <span class="lbl-row lbl-model">
-                        <input id="lbl_custom_model" class="text_pole" type="text" list="lbl_custom_models" autocomplete="off">
-                        <datalist id="lbl_custom_models"></datalist>
-                        <button id="lbl_custom_load" class="menu_button" type="button" data-i18n="Load models">Load models</button>
-                    </span>
-                </label>
-            </div>
-
-            <div class="lbl-row">
-                <label class="lbl-check checkbox_label"><input id="lbl_review" type="checkbox">
-                    <span data-i18n="Show keywords before saving">Show keywords before saving</span>
-                </label>
-                <label class="lbl-field lbl-small"><span data-i18n="Entries per request">Entries per request</span>
-                    <input id="lbl_batch" class="text_pole" type="number" min="5" max="30" step="1">
-                </label>
-            </div>
-
-            <div class="lbl-row lbl-buttons">
-                <button id="lbl_run" class="menu_button" data-i18n="Localize">Localize</button>
-                <button id="lbl_inflect" class="menu_button" data-i18n="Word forms for existing keys">Word forms for existing keys</button>
-                <button id="lbl_remove" class="menu_button" data-i18n="Remove localization">Remove localization</button>
-                <button id="lbl_help" class="menu_button lbl-help" title="?" aria-label="Help">?</button>
-            </div>
-
-            <div id="lbl_status" class="lbl-status" hidden>
-                <progress id="lbl_progress" max="1" value="0"></progress>
-                <div id="lbl_status_text"></div>
-                <div class="lbl-row lbl-buttons">
-                    <button id="lbl_cancel" class="menu_button" data-i18n="Cancel">Cancel</button>
-                    <button id="lbl_retry" class="menu_button" hidden data-i18n="Retry failed entries">Retry failed entries</button>
+                <div class="lbl-head">
+                    <div class="lbl-brand"><span class="lbl-mark">L</span><span>Lorelator</span></div>
+                    <button id="lbl_conn_chip" class="lbl-chip" type="button" aria-expanded="false" aria-controls="lbl_conn_sheet">
+                        <span id="lbl_chip_dot" class="lbl-dot"></span>
+                        <span id="lbl_chip_text" class="lbl-chip-text"></span>
+                    </button>
+                    <label class="lbl-lang">
+                        <select id="lbl_lang"></select>
+                    </label>
                 </div>
-            </div>
 
-            <div class="inline-drawer lbl-viewer">
-                <div class="inline-drawer-toggle inline-drawer-header">
-                    <span data-i18n="Fired entries">Fired entries</span>
-                    <div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div>
+                <section id="lbl_conn_sheet" class="lbl-card lbl-sheet" hidden>
+                    <div class="lbl-card-title" data-i18n="How to connect to the AI">How to connect to the AI</div>
+                    <select id="lbl_conn_mode" class="lbl-hidden">
+                        <option value="current">Current SillyTavern connection</option>
+                        <option value="profile">Saved connection profile</option>
+                        <option value="custom">Own service and API key</option>
+                    </select>
+                    <div id="lbl_conn_seg" class="lbl-seg" role="tablist">
+                        <button type="button" data-mode="current" data-i18n="Current">Current</button>
+                        <button type="button" data-mode="profile" data-i18n="Profile">Profile</button>
+                        <button type="button" data-mode="custom" data-i18n="Own service">Own service</button>
+                    </div>
+                    <small id="lbl_conn_hint" class="lbl-note"></small>
+
+                    <div id="lbl_conn_profile" class="lbl-conn" hidden>
+                        <label class="lbl-field"><span data-i18n="Profile">Profile</span>
+                            <select id="lbl_profile" class="lbl-input"></select>
+                        </label>
+                        <label class="lbl-field"><span data-i18n="Model (empty = the profile's model)">Model (empty = the profile's model)</span>
+                            <span class="lbl-model">
+                                <input id="lbl_profile_model" class="lbl-input" type="text" list="lbl_profile_models" autocomplete="off">
+                                <datalist id="lbl_profile_models"></datalist>
+                                <button id="lbl_profile_load" class="lbl-ghost" type="button" data-i18n="Load models">Load models</button>
+                            </span>
+                        </label>
+                    </div>
+
+                    <div id="lbl_conn_custom" class="lbl-conn" hidden>
+                        <label class="lbl-field"><span data-i18n="Service">Service</span>
+                            <select id="lbl_provider" class="lbl-input"></select>
+                        </label>
+                        <label id="lbl_url_field" class="lbl-field" hidden><span data-i18n="Service URL (OpenAI-compatible)">Service URL (OpenAI-compatible)</span>
+                            <input id="lbl_url" class="lbl-input" type="url" placeholder="http://localhost:1234/v1" autocomplete="off">
+                        </label>
+                        <label class="lbl-field"><span data-i18n="API key">API key</span>
+                            <input id="lbl_key" class="lbl-input" type="password" autocomplete="off" spellcheck="false">
+                            <small class="lbl-note lbl-warn" data-i18n="The key is stored in SillyTavern settings as plain text, and other extensions can read it.">The key is stored in SillyTavern settings as plain text, and other extensions can read it.</small>
+                        </label>
+                        <label class="lbl-field"><span data-i18n="Model">Model</span>
+                            <span class="lbl-model">
+                                <input id="lbl_custom_model" class="lbl-input" type="text" list="lbl_custom_models" autocomplete="off">
+                                <datalist id="lbl_custom_models"></datalist>
+                                <button id="lbl_custom_load" class="lbl-ghost" type="button" data-i18n="Load models">Load models</button>
+                            </span>
+                        </label>
+                    </div>
+                </section>
+
+                <div id="lbl_tabs" class="lbl-seg lbl-tabs" role="tablist">
+                    <button type="button" data-view="books" role="tab">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2V5z"/><path d="M8 7h7"/></svg>
+                        <span data-i18n="Lorebooks">Lorebooks</span>
+                    </button>
+                    <button type="button" data-view="greetings" role="tab">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L3 21l1.9-6.4A8 8 0 1 1 21 12z"/></svg>
+                        <span data-i18n="Greetings">Greetings</span>
+                    </button>
+                    <button type="button" data-view="more" role="tab">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/></svg>
+                        <span data-i18n="More">More</span>
+                    </button>
                 </div>
-                <div class="inline-drawer-content">
-                    <label class="lbl-field"><span data-i18n="Book icon with the number of fired entries">Book icon with the number of fired entries</span>
-                        <select id="lbl_view_icon" class="text_pole">
-                            <option value="inbar" data-i18n="In the input bar">In the input bar</option>
-                            <option value="floating" data-i18n="Floating (drag it anywhere)">Floating (drag it anywhere)</option>
-                            <option value="off" data-i18n="No icon">No icon</option>
+
+                <!-- Lorebooks -->
+                <div id="lbl_view_books" class="lbl-view">
+                    <div id="lbl_empty_books" class="lbl-empty" hidden data-i18n="No lorebooks yet. Create one in the World Info panel.">No lorebooks yet. Create one in the World Info panel.</div>
+                    <div class="lbl-target">
+                        <span class="lbl-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2V5z"/><path d="M8 7h7M8 11h5"/></svg></span>
+                        <div class="lbl-meta"><span class="lbl-sub" data-i18n="Lorebook">Lorebook</span>
+                            <button id="lbl_book_btn" class="lbl-pick" type="button"></button>
+                            <select id="lbl_book" class="lbl-hidden" tabindex="-1" aria-hidden="true"></select>
+                        </div>
+                    </div>
+                    <div id="lbl_book_picker" class="lbl-picker" hidden></div>
+                    <div id="lbl_book_stats" class="lbl-stats"></div>
+
+                    <button id="lbl_run" class="lbl-primary" type="button">
+                        <span id="lbl_run_text" data-i18n="Localize">Localize</span>
+                        <small id="lbl_run_sub"></small>
+                    </button>
+                    <div class="lbl-row">
+                        <button id="lbl_inflect" class="lbl-ghost" type="button" data-i18n="Word forms for existing keys">Word forms for existing keys</button>
+                        <button id="lbl_remove" class="lbl-ghost" type="button" data-i18n="Remove localization">Remove localization</button>
+                    </div>
+
+                    <details class="lbl-group">
+                        <summary><span data-i18n="Options">Options</span></summary>
+                        <div class="lbl-body">
+                            <label class="lbl-switch"><input id="lbl_review" type="checkbox"><span class="lbl-knob"></span>
+                                <span class="lbl-switch-text"><b data-i18n="Show keywords before saving">Show keywords before saving</b><small data-i18n="You can untick the words you do not want.">You can untick the words you do not want.</small></span>
+                            </label>
+                            <label class="lbl-field lbl-narrow"><span data-i18n="Entries per request">Entries per request</span>
+                                <input id="lbl_batch" class="lbl-input" type="number" min="5" max="30" step="1">
+                            </label>
+                        </div>
+                    </details>
+                </div>
+
+                <!-- Greetings -->
+                <div id="lbl_view_greetings" class="lbl-view" hidden>
+                    <small class="lbl-note" data-i18n="Translates the first message and the alternate greetings of a character into the language chosen above, uses the connection set above, and writes them into the card. You see the result before anything is saved. The original greetings are kept and can be restored.">Translates the first message and the alternate greetings of a character into the language chosen above, uses the connection set above, and writes them into the card. You see the result before anything is saved. The original greetings are kept and can be restored.</small>
+                    <div id="lbl_empty_chars" class="lbl-empty" hidden data-i18n="No characters yet.">No characters yet.</div>
+                    <div class="lbl-target">
+                        <span id="lbl_gr_avatar" class="lbl-avatar"></span>
+                        <div class="lbl-meta"><span class="lbl-sub" data-i18n="Character">Character</span>
+                            <button id="lbl_gr_char_btn" class="lbl-pick" type="button"></button>
+                            <select id="lbl_gr_char" class="lbl-hidden" tabindex="-1" aria-hidden="true"></select>
+                        </div>
+                    </div>
+                    <div id="lbl_gr_char_picker" class="lbl-picker" hidden></div>
+                    <div id="lbl_gr_stats" class="lbl-stats"></div>
+
+                    <details class="lbl-group" id="lbl_gr_pick">
+                        <summary><span id="lbl_gr_pick_title" data-i18n="What to translate">What to translate</span></summary>
+                        <div class="lbl-body">
+                            <div class="lbl-row">
+                                <button id="lbl_gr_all" class="lbl-ghost" type="button" data-i18n="All">All</button>
+                                <button id="lbl_gr_none" class="lbl-ghost" type="button" data-i18n="None">None</button>
+                                <button id="lbl_gr_first_msg" class="lbl-ghost" type="button" data-i18n="First message only">First message only</button>
+                            </div>
+                            <div class="lbl-row lbl-firstn">
+                                <span data-i18n="First">First</span>
+                                <input id="lbl_gr_n" class="lbl-input" type="number" min="1" step="1" value="3" inputmode="numeric">
+                                <button id="lbl_gr_take" class="lbl-ghost" type="button" data-i18n="Select">Select</button>
+                            </div>
+                            <div id="lbl_gr_list" class="lbl-gr-list"></div>
+                        </div>
+                    </details>
+
+                    <section class="lbl-card">
+                        <div class="lbl-card-title" data-i18n="Formatting">Formatting</div>
+                        <select id="lbl_gr_mode" class="lbl-hidden">
+                            <option value="keep">Keep the card's formatting</option>
+                            <option value="rules">Use my formatting rules</option>
                         </select>
-                    </label>
-                    <label class="lbl-check checkbox_label"><input id="lbl_view_under" type="checkbox">
-                        <span data-i18n="Also show under each AI reply">Also show under each AI reply</span>
-                    </label>
-                    <div class="lbl-row lbl-buttons">
-                        <button id="lbl_view_test" class="menu_button" data-i18n="Test a phrase">Test a phrase</button>
-                        <button id="lbl_view_reset" class="menu_button" data-i18n="Return the floating icon">Return the floating icon</button>
-                    </div>
-                </div>
-            </div>
+                        <div id="lbl_gr_seg" class="lbl-seg" role="tablist">
+                            <button type="button" data-mode="keep" data-i18n="Keep the card's">Keep the card's</button>
+                            <button type="button" data-mode="rules" data-i18n="My rules">My rules</button>
+                        </div>
+                        <label id="lbl_gr_rules_field" class="lbl-field" hidden>
+                            <span id="lbl_gr_lines" data-i18n="Formatting rules">Formatting rules</span>
+                            <textarea id="lbl_gr_rules" class="lbl-input lbl-rules" rows="8" spellcheck="false"></textarea>
+                        </label>
+                    </section>
 
-            <div class="inline-drawer lbl-backups">
-                <div class="inline-drawer-toggle inline-drawer-header">
-                    <span data-i18n="Backups">Backups</span>
-                    <div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div>
-                </div>
-                <div class="inline-drawer-content">
-                    <small data-i18n="Copies of the selected lorebook. One is saved automatically before every change the extension makes. Make a backup saves the lorebook as it is now. Restore puts the chosen copy back (the current state is saved as a copy first).">Copies of the selected lorebook. One is saved automatically before every change the extension makes. Make a backup saves the lorebook as it is now. Restore puts the chosen copy back (the current state is saved as a copy first).</small>
-                    <select id="lbl_backup_list" class="text_pole"></select>
-                    <div class="lbl-row lbl-buttons">
-                        <button id="lbl_backup_make" class="menu_button" data-i18n="Make a backup">Make a backup</button>
-                        <button id="lbl_backup_restore" class="menu_button" data-i18n="Restore">Restore</button>
-                        <button id="lbl_backup_delete" class="menu_button" data-i18n="Delete">Delete</button>
-                    </div>
-                    <label class="lbl-check checkbox_label"><input id="lbl_backup_visible" type="checkbox">
-                        <span data-i18n="Save backups as lorebooks (visible in SillyTavern lists)">Save backups as lorebooks (visible in SillyTavern lists)</span>
+                    <label class="lbl-switch"><input id="lbl_gr_player" type="checkbox"><span class="lbl-knob"></span>
+                        <span class="lbl-switch-text"><b data-i18n="Write for the player">Write for the player</b><small data-i18n="Off: the translation never speaks, acts or thinks for {{user}}.">Off: the translation never speaks, acts or thinks for {{user}}.</small></span>
                     </label>
+
+                    <button id="lbl_gr_run" class="lbl-primary" type="button">
+                        <span id="lbl_gr_run_text" data-i18n="Translate greetings">Translate greetings</span>
+                        <small id="lbl_gr_run_sub" data-i18n="you review the result before it is saved">you review the result before it is saved</small>
+                    </button>
+                    <button id="lbl_gr_restore" class="lbl-ghost lbl-wide" type="button">
+                        <span data-i18n="Restore original greetings">Restore original greetings</span>
+                        <small id="lbl_gr_restore_sub"></small>
+                    </button>
                 </div>
+
+                <!-- More -->
+                <div id="lbl_view_more" class="lbl-view" hidden>
+                    <details class="lbl-group" open>
+                        <summary><span data-i18n="Backups">Backups</span></summary>
+                        <div class="lbl-body">
+                            <small class="lbl-note" data-i18n="Copies of the selected lorebook. One is saved automatically before every change the extension makes. Make a backup saves the lorebook as it is now. Restore puts the chosen copy back (the current state is saved as a copy first).">Copies of the selected lorebook. One is saved automatically before every change the extension makes. Make a backup saves the lorebook as it is now. Restore puts the chosen copy back (the current state is saved as a copy first).</small>
+                            <select id="lbl_backup_list" class="lbl-input"></select>
+                            <div class="lbl-row">
+                                <button id="lbl_backup_make" class="lbl-ghost" type="button" data-i18n="Make a backup">Make a backup</button>
+                                <button id="lbl_backup_restore" class="lbl-ghost" type="button" data-i18n="Restore">Restore</button>
+                                <button id="lbl_backup_delete" class="lbl-ghost" type="button" data-i18n="Delete">Delete</button>
+                            </div>
+                            <label class="lbl-switch"><input id="lbl_backup_visible" type="checkbox"><span class="lbl-knob"></span>
+                                <span class="lbl-switch-text"><b data-i18n="Save backups as lorebooks (visible in SillyTavern lists)">Save backups as lorebooks (visible in SillyTavern lists)</b></span>
+                            </label>
+                        </div>
+                    </details>
+
+                    <details class="lbl-group">
+                        <summary><span data-i18n="Fired entries">Fired entries</span></summary>
+                        <div class="lbl-body">
+                            <label class="lbl-field"><span data-i18n="Book icon with the number of fired entries">Book icon with the number of fired entries</span>
+                                <select id="lbl_view_icon" class="lbl-input">
+                                    <option value="inbar" data-i18n="In the input bar">In the input bar</option>
+                                    <option value="floating" data-i18n="Floating (drag it anywhere)">Floating (drag it anywhere)</option>
+                                    <option value="off" data-i18n="No icon">No icon</option>
+                                </select>
+                            </label>
+                            <label class="lbl-switch"><input id="lbl_view_under" type="checkbox"><span class="lbl-knob"></span>
+                                <span class="lbl-switch-text"><b data-i18n="Also show under each AI reply">Also show under each AI reply</b></span>
+                            </label>
+                            <div class="lbl-row">
+                                <button id="lbl_view_test" class="lbl-ghost" type="button" data-i18n="Test a phrase">Test a phrase</button>
+                                <button id="lbl_view_reset" class="lbl-ghost" type="button" data-i18n="Return the floating icon">Return the floating icon</button>
+                            </div>
+                        </div>
+                    </details>
+
+                    <button id="lbl_help" class="lbl-ghost lbl-wide" type="button" data-i18n="Help">Help</button>
+                </div>
+
+                <!-- Progress, shared by every view -->
+                <div id="lbl_status" class="lbl-progress" hidden>
+                    <div id="lbl_progress" class="lbl-ring" style="--p:0"><span id="lbl_pct">0%</span></div>
+                    <div class="lbl-progress-text">
+                        <div id="lbl_status_text"></div>
+                        <div class="lbl-row">
+                            <button id="lbl_cancel" class="lbl-ghost" type="button" data-i18n="Cancel">Cancel</button>
+                            <button id="lbl_retry" class="lbl-ghost" type="button" hidden data-i18n="Retry failed entries">Retry failed entries</button>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
     </div>
