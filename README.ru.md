@@ -23,6 +23,7 @@
 <table>
   <tr>
     <td align="center"><img src="docs/images/panel-main-ru.png" alt="Панель Lorelator: лорбук, язык, подключение и основные кнопки" width="320"><br><sub>Основные настройки</sub></td>
+    <td align="center"><img src="docs/images/panel-greetings-ru.png" alt="Панель Lorelator: выбор приветствий карточки для перевода" width="320"><br><sub>Перевод приветствий</sub></td>
     <td align="center"><img src="docs/images/panel-more-ru.png" alt="Панель Lorelator: настройки сработавших записей и резервные копии" width="320"><br><sub>Сработавшие записи и резервные копии</sub></td>
   </tr>
 </table>

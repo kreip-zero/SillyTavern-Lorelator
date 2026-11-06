@@ -23,6 +23,7 @@ Behind each row is an ordinary regex key, for example `/(?<![\p{L}\p{N}])тав[
 <table>
   <tr>
     <td align="center"><img src="docs/images/panel-main-en.png" alt="Lorelator panel: lorebook, language, connection and the main buttons" width="320"><br><sub>Main controls</sub></td>
+    <td align="center"><img src="docs/images/panel-greetings-en.png" alt="Lorelator panel: choosing which greetings of a character card to translate" width="320"><br><sub>Greetings translation</sub></td>
     <td align="center"><img src="docs/images/panel-more-en.png" alt="Lorelator panel: fired entries settings and backups" width="320"><br><sub>Fired entries and backups</sub></td>
   </tr>
 </table>
